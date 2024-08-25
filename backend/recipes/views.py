@@ -1,15 +1,12 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
-    filters,
     generics,
     pagination,
     permissions,
     status,
     viewsets
 )
-from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from recipes.filters import RecipeFilter
@@ -58,7 +55,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         if is_in_shopping_cart:
             for data in serializer.data:
-                if bool(data['is_in_shopping_cart']) != bool(is_in_shopping_cart):
+                if bool(data['is_in_shopping_cart']) != bool(
+                    is_in_shopping_cart
+                ):
                     queryset = queryset.exclude(id=data['id'])
         page = self.paginate_queryset(queryset)
         serializer = RecipeSerializer(

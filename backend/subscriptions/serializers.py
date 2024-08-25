@@ -62,7 +62,7 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def get_recipes_count(self, obj):
         """Получение количества рецептов."""
-        author=obj.following
+        author = obj.following
         return author.recipes.all().count()
 
     def to_representation(self, instance):
