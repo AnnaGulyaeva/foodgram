@@ -4,7 +4,7 @@ from accounts.models import User
 
 
 class Follow(models.Model):
-    """Модель подписчика."""
+    """Модель подписки."""
 
     user = models.ForeignKey(
         User,
@@ -22,6 +22,7 @@ class Follow(models.Model):
     class Meta:
         """Дополнительные настроки модели."""
 
+        default_related_name = 'follows'
         verbose_name = 'подписчик'
         verbose_name_plural = 'Подписчики'
         constraints = [
@@ -36,6 +37,7 @@ class Follow(models.Model):
         ]
 
     def __str__(self):
+        """Возвращает username подписчика и автора."""
         return (
             f'Подписчик: {self.user.get_username()} '
             f'Автор: {self.following.get_username()}'

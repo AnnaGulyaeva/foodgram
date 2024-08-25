@@ -4,6 +4,7 @@ from django.db import models
 from accounts.constants import (
     EMAIL_MAX_LENGTH,
     NAME_MAX_LENGTH,
+    PASSWORD_MAX_LENGTH,
     TEXT_REPRESENTATION_COUNT
 )
 
@@ -11,16 +12,6 @@ from accounts.constants import (
 class User(AbstractUser):
     """Модель пользователя."""
 
-    email = models.EmailField(
-        'Почтовый адрес',
-        max_length=EMAIL_MAX_LENGTH,
-        unique=True
-    )
-    username = models.CharField(
-        'Имя пользователя',
-        max_length=NAME_MAX_LENGTH,
-        unique=True
-    )
     first_name = models.CharField(
         'Имя',
         max_length=NAME_MAX_LENGTH,
@@ -29,6 +20,24 @@ class User(AbstractUser):
         'Фамилия',
         max_length=NAME_MAX_LENGTH
     )
+    email = models.EmailField(
+        'Почтовый адрес',
+        max_length=EMAIL_MAX_LENGTH,
+        unique=True
+    )
+    username = models.CharField(
+        'Имя пользователя',
+        max_length=NAME_MAX_LENGTH,
+        unique=True,
+        db_index=True
+    )
+
+    password = models.CharField(
+        'Пароль',
+        max_length=PASSWORD_MAX_LENGTH,
+        default='password'
+    )
+
     avatar = models.ImageField(
         'Аватар',
         upload_to='avatars',

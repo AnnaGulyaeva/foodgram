@@ -1,9 +1,11 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.urls import reverse
 
 from accounts.models import User
 from recipes.constants import (
-    COOCKING_TIME_MIN_VALUE,
+    COOKING_TIME_MIN_VALUE,
+    INGREDIENT_AMOUNT_MIN_VALUE,
     INGREDIENT_MAX_LENGTH,
     MESUREMENT_UNIT_MAX_LENGTH,
     NAME_MAX_LENGTH,
@@ -27,7 +29,7 @@ class BaseModel(models.Model):
 
 
 class Ingredient(BaseModel):
-    """Модель ингридиента."""
+    """Модель ингредиента."""
 
     name = models.CharField(
         'Название',
@@ -43,8 +45,8 @@ class Ingredient(BaseModel):
     class Meta:
         """Дополнительные настройки модели."""
 
-        verbose_name = 'ингридиент'
-        verbose_name_plural = 'Ингридиенты'
+        verbose_name = 'ингредиент'
+        verbose_name_plural = 'Ингредиенты'
         ordering = ('name',)
 
 
@@ -85,9 +87,9 @@ class Recipe(models.Model):
         'Название',
         max_length=NAME_MAX_LENGTH
     )
-    picture = models.ImageField(
+    image = models.ImageField(
         'Картинка',
-        upload_to='pictures'
+        upload_to='images'
     )
     description = models.TextField(
         verbose_name='Текстовое описание',
@@ -96,17 +98,17 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Ингредиенты',
-        related_name='ingredients',
+        through='IngredientRecipe'
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Теги',
-        related_name='tags'
+        through='TagRecipe'
     )
-    coocking_time = models.PositiveSmallIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления в минутах',
         validators=(
-            MinValueValidator(COOCKING_TIME_MIN_VALUE),
+            MinValueValidator(COOKING_TIME_MIN_VALUE),
         ),
         error_messages={'Проверка': 'Время приготовления не меньше 1 минуты.'}
     )
@@ -119,10 +121,67 @@ class Recipe(models.Model):
     class Meta:
         """Дополнительные настройки модели."""
 
-        verbose_name = 'Произведение'
-        verbose_name_plural = 'Произведения'
+        default_related_name = 'recipes'
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
 
     def __str__(self):
-        """Возвращает название произведения."""
+        """Возвращает название рецепта."""
         return self.name
+
+    def get_absolute_url(self):
+        """Возвращает ссылку на рецепт."""
+        return reverse(
+            'recipes:recipes-detail',
+            args=[self.id]
+        ).replace('/recipes', '', 1)
+
+    def get_favorites_count(self):
+        """Возвращает количество добавлений в избранное."""
+        return self.favorites.count()
+
+
+class IngredientRecipe(models.Model):
+    """Вспомогательная модель для связи ингредиента и рецепта."""
+
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиент'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт'
+    )
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество в граммах',
+        validators=(
+            MinValueValidator(INGREDIENT_AMOUNT_MIN_VALUE),
+        ),
+        error_messages={'Проверка': 'Количество не меньше 1 грамма.'}
+    )
+
+    def __str__(self):
+        """Возвращает название ингредиента и рецепта."""
+        return f'{self.ingredient} {self.recipe}'
+
+
+class TagRecipe(models.Model):
+    """Вспомогательная модель для связи тега и рецепта."""
+
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,
+        verbose_name='Тег'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт'
+    )
+
+    def __str__(self):
+        """Возвращает название тега и рецепта."""
+        return f'{self.tag} {self.recipe}'
