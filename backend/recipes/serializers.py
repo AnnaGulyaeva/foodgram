@@ -4,8 +4,8 @@ from rest_framework.serializers import ValidationError
 
 from accounts.serializers import UsersGetListSerializer
 from favorites.models import Favorite
-from foodgram.images import Base64ImageField
-from recipes.constants import TEXT_MAX_LENGTH
+from foodgram_api.fields import Base64ImageField
+from recipes.constants import INGREDIENT_AMOUNT_MIN_VALUE
 from recipes.models import (
     Ingredient,
     IngredientRecipe,
@@ -60,10 +60,7 @@ class RecipeSerializer(BaseRecipeSerializer):
         slug_field='username'
     )
     author_info = serializers.SerializerMethodField()
-    text = serializers.CharField(
-        max_length=TEXT_MAX_LENGTH,
-        source='description'
-    )
+    text = serializers.CharField(source='description')
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
@@ -159,7 +156,7 @@ class RecipeSerializer(BaseRecipeSerializer):
             if current_ingredient in safe_ingredients:
                 raise ValidationError('Ингредиенты повторяются!')
             safe_ingredients.append(current_ingredient)
-            if int(amounts[i]) < 1:
+            if int(amounts[i]) < INGREDIENT_AMOUNT_MIN_VALUE:
                 raise ValidationError(
                     f'Количество ингредиента {ingredient} указано неверно!'
                 )

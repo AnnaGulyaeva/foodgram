@@ -6,10 +6,11 @@ from accounts.constants import (
     EMAIL_MAX_LENGTH,
     NAME_MAX_LENGTH,
     PASSWORD_MAX_LENGTH,
-    USERNAME_PATTERN
+    USERNAME_PATTERN,
+    USERNAME_RESERVED
 )
 from accounts.models import User
-from foodgram.images import Base64ImageField
+from foodgram_api.fields import Base64ImageField
 from subscriptions.models import Follow
 
 
@@ -20,7 +21,7 @@ class AvatarCreateDeleteSerializer(serializers.ModelSerializer):
         required=True,
         allow_null=True
     )
-    avatar_url = serializers.SerializerMethodField(read_only=True)
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         """Дополнительные настройки сериализатора."""
@@ -62,6 +63,7 @@ class UserCreateSerializer(BaseUserSerializer):
 
     class Meta:
         """Дополнительные настройки сериализатора."""
+
         model = User
         fields = (
             'id',
@@ -72,29 +74,10 @@ class UserCreateSerializer(BaseUserSerializer):
             'password'
         )
 
-    def validate(self, data):
-        """Проверка уникальности username и email нового пользователя."""
-        if 'username' in data and 'email' in data:
-            users = (
-                User.objects.filter(username=data['username'])
-                | User.objects.filter(email=data['email'])
-            )
-            for user in users:
-                if (user.username != data['username']
-                        and user.email == data['email']):
-                    raise serializers.ValidationError(
-                        'email уже используется!'
-                    )
-                if (user.username == data['username']
-                        and user.email != data['email']):
-                    raise serializers.ValidationError(
-                        'username уже используется!'
-                    )
-        return data
-
     def validate_username(self, value):
         """Проверка корректности username."""
-        if value == 'me' or not re.match(USERNAME_PATTERN, value):
+        if (value == USERNAME_RESERVED
+                or not re.match(USERNAME_PATTERN, value)):
             raise serializers.ValidationError(
                 'Выберете другое имя пользователя!'
             )

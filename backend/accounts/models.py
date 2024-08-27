@@ -7,6 +7,7 @@ from accounts.constants import (
     PASSWORD_MAX_LENGTH,
     TEXT_REPRESENTATION_COUNT
 )
+from accounts.validators import username_validator
 
 
 class User(AbstractUser):
@@ -29,7 +30,8 @@ class User(AbstractUser):
         'Имя пользователя',
         max_length=NAME_MAX_LENGTH,
         unique=True,
-        db_index=True
+        db_index=True,
+        validators=[username_validator]
     )
 
     password = models.CharField(
@@ -50,12 +52,6 @@ class User(AbstractUser):
 
         verbose_name = 'пользователь'
         verbose_name_plural = 'Пользователи'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_user'
-            )
-        ]
         ordering = ['username']
 
     def __str__(self):

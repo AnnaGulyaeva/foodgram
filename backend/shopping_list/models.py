@@ -7,6 +7,6 @@ class ShoppingList(BaseUserRecipeModel):
     class Meta:
         """Дополнительные настроки модели."""
 
-        default_related_name = 'shopping_list'
+        default_related_name = 'shopping_lists'
         verbose_name = 'список покупок'
         verbose_name_plural = 'Списки покупок'

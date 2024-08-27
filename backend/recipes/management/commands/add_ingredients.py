@@ -4,6 +4,7 @@ import os
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from recipes.management.commands.constants import PATH
 from recipes.models import Ingredient
 
 
@@ -13,7 +14,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         csv_path = os.path.join(
             settings.BASE_DIR,
-            'recipes/management/commands/',
+            PATH,
             'ingredients.csv'
         )
         csv_file = open(csv_path, 'r', encoding='utf-8')

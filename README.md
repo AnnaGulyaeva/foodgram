@@ -93,6 +93,16 @@ _Перезагрузить конфиг Nginx_
 sudo service nginx reload 
 ```
 
+### Как заполнить базу данных ингридиентами и тегами
+_Заполнение таблицы ингредиентами_
+```sh
+python manage.py add_ingredients
+```
+_Заполнение таблицы тегами_
+```sh
+python manage.py add_tags
+```
+
 
 ##  Как заполнить .env
 - `ALLOWED_HOSTS` — доменное имя сайта и ip-адрес сервера, на котором запускается проект,
@@ -100,6 +110,9 @@ sudo service nginx reload
 - `DEBUG` — включить или выключить режим отладки, true или false (по умолчанию false);
 - `SECRET_KEY` — токен для Джанго-приложения;
 - `DATABASE` — какая база данных используется (по умолчанию PostgreSQL).
+
+[Проект Фудграм](https://foodgram81.hopto.org)
+[Документация на API](https://foodgram81.hopto.org/api/docs/)
 
 ## Автор
 

@@ -10,8 +10,7 @@ from recipes.constants import (
     MESUREMENT_UNIT_MAX_LENGTH,
     NAME_MAX_LENGTH,
     SLUG_MAX_LENGTH,
-    TAG_MAX_LENGTH,
-    TEXT_MAX_LENGTH
+    TAG_MAX_LENGTH
 )
 
 
@@ -47,6 +46,12 @@ class Ingredient(BaseModel):
 
         verbose_name = 'ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient'
+            )
+        ]
         ordering = ('name',)
 
 
@@ -61,9 +66,7 @@ class Tag(BaseModel):
     )
     slug = models.SlugField(
         'Слаг',
-        max_length=SLUG_MAX_LENGTH,
-        null=True,
-        blank=True
+        max_length=SLUG_MAX_LENGTH
     )
 
     class Meta:
@@ -92,8 +95,7 @@ class Recipe(models.Model):
         upload_to='images'
     )
     description = models.TextField(
-        verbose_name='Текстовое описание',
-        max_length=TEXT_MAX_LENGTH
+        verbose_name='Текстовое описание'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -110,7 +112,11 @@ class Recipe(models.Model):
         validators=(
             MinValueValidator(COOKING_TIME_MIN_VALUE),
         ),
-        error_messages={'Проверка': 'Время приготовления не меньше 1 минуты.'}
+        error_messages={
+            'Проверка':
+            'Время приготовления не меньше '
+            f'{COOKING_TIME_MIN_VALUE} минуты.'
+        }
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
@@ -160,7 +166,11 @@ class IngredientRecipe(models.Model):
         validators=(
             MinValueValidator(INGREDIENT_AMOUNT_MIN_VALUE),
         ),
-        error_messages={'Проверка': 'Количество не меньше 1 грамма.'}
+        error_messages={
+            'Проверка':
+            'Количество не меньше '
+            f'{INGREDIENT_AMOUNT_MIN_VALUE} грамма.'
+        }
     )
 
     def __str__(self):
