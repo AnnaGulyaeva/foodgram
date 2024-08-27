@@ -3,15 +3,12 @@ import re
 from rest_framework import serializers
 
 from accounts.constants import (
-    EMAIL_MAX_LENGTH,
-    NAME_MAX_LENGTH,
     PASSWORD_MAX_LENGTH,
     USERNAME_PATTERN,
     USERNAME_RESERVED
 )
 from accounts.models import User
 from foodgram_api.fields import Base64ImageField
-from subscriptions.models import Follow
 
 
 class AvatarCreateDeleteSerializer(serializers.ModelSerializer):
@@ -45,21 +42,10 @@ class AvatarCreateDeleteSerializer(serializers.ModelSerializer):
         return representation
 
 
-class BaseUserSerializer(serializers.ModelSerializer):
-    """Базовый сериализатор для модели пользователя."""
-
-    first_name = serializers.CharField(max_length=NAME_MAX_LENGTH)
-    last_name = serializers.CharField(max_length=NAME_MAX_LENGTH)
-    username = serializers.CharField(max_length=NAME_MAX_LENGTH)
-    email = serializers.EmailField(max_length=EMAIL_MAX_LENGTH)
-    password = serializers.CharField(
-        write_only=True,
-        max_length=PASSWORD_MAX_LENGTH
-    )
-
-
-class UserCreateSerializer(BaseUserSerializer):
+class UserCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания нового пользователя."""
+
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         """Дополнительные настройки сериализатора."""
@@ -95,8 +81,8 @@ class UserCreateSerializer(BaseUserSerializer):
 
 
 class UsersGetListSerializer(
-    BaseUserSerializer,
-    AvatarCreateDeleteSerializer
+    AvatarCreateDeleteSerializer,
+    serializers.ModelSerializer
 ):
     """Сериализатор для получения профиля или списка профилей."""
 
@@ -112,7 +98,6 @@ class UsersGetListSerializer(
             'first_name',
             'last_name',
             'email',
-            'password',
             'is_subscribed',
             'avatar',
             'avatar_url'
@@ -120,12 +105,9 @@ class UsersGetListSerializer(
 
     def get_is_subscribed(self, obj):
         """Проверка подписки на данного пользователя."""
-        if Follow.objects.filter(
-            user_id=self.context['request'].user.id,
-            following_id=obj.id
-        ):
-            return True
-        return False
+        return obj.following.filter(
+            user_id=self.context['request'].user.id
+        ).exists()
 
 
 class SetPasswordSerializer(serializers.ModelSerializer):
