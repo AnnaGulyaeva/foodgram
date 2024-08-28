@@ -23,7 +23,6 @@ class FollowSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
         required=True
     )
-    following_info = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -34,7 +33,6 @@ class FollowSerializer(serializers.ModelSerializer):
         fields = (
             'user',
             'following',
-            'following_info',
             'recipes',
             'recipes_count'
         )
@@ -43,40 +41,60 @@ class FollowSerializer(serializers.ModelSerializer):
             validate_follow
         ]
 
-    def get_following_info(self, obj):
-        """Получение информации об авторе рецептов."""
-        return UsersGetListSerializer(
-            obj.following,
-            context=self.context
-        ).data
-
     def get_recipes(self, obj):
         """Получение списка рецептов."""
         author = obj.following
+        recipes = author.recipes.all()
         if 'recipes_limit' in self.context:
-            recipes_limit = int(self.context['recipes_limit'])
-            recipes = author.recipes.all()[:recipes_limit]
-        else:
-            recipes = author.recipes.all()
-        return RecipeWithoutIngredientsTagsSerializer(recipes, many=True).data
+            recipes_limit = self.context['recipes_limit']
+            if isinstance(recipes_limit, int):
+                recipes = recipes[:int(recipes_limit)]
+        return RecipeWithoutIngredientsTagsSerializer(
+            recipes,
+            many=True,
+            context=self.context
+        ).data
 
     def get_recipes_count(self, obj):
         """Получение количества рецептов."""
         author = obj.following
+        print(author.recipes.all().count())
         return author.recipes.all().count()
 
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
         representation = super().to_representation(instance)
-        following_info = representation['following_info']
-        recipes = representation['recipes']
-        recipes_count = representation['recipes_count']
-        representation.pop('following_info')
-        representation.pop('following')
-        representation.pop('recipes')
-        representation.pop('recipes_count')
+        print(representation)
         representation.pop('user')
-        representation['following'] = following_info
-        representation['recipes_count'] = recipes_count
-        representation['recipes'] = recipes
+        representation = UsersGetListSerializer(
+            instance.following,
+            context=self.context
+        ).data
+        data = super().to_representation(instance)
+        representation['recipes_count'] = data['recipes_count']
+        representation['recipes'] = data['recipes']
+        return representation
+
+
+class SubscribtionsSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели связи пользователя с подпиской."""
+
+    followers = FollowSerializer(
+        many=True,
+        read_only=True,
+        source='follower'
+    )
+
+    class Meta:
+        """Дополнительные настройки сериализатора."""
+
+        model = User
+        fields = ('followers',)
+
+    def to_representation(self, instance):
+        """Изменение возвращаемых данных."""
+        representation = FollowSerializer(
+            instance,
+            context=self.context
+        ).data
         return representation

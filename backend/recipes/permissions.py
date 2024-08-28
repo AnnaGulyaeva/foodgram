@@ -1,10 +1,9 @@
 from rest_framework import permissions
 
 
-class IsAdminOrAuthor(permissions.BasePermission):
+class IsSafeMethodOrAuthor(permissions.BasePermission):
     """
-    Разрешение на внесение изменений и удаление только для автора
-    или администратора.
+    Разрешение на внесение изменений и удаление только для автора.
     """
 
     def has_object_permission(self, request, view, obj):

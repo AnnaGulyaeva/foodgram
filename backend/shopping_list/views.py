@@ -1,18 +1,15 @@
-from django.http import HttpResponse
+import io
 
-from django.shortcuts import get_list_or_404, get_object_or_404
+from django.db.models import Sum
+from django.http import FileResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from rest_framework import (
-    permissions,
-    views
-)
+from rest_framework import permissions, views
 
-from favorites.views import BaseUserRecipeViewSet
-from recipes.models import Ingredient, IngredientRecipe
-from recipes.permissions import IsAdminOrAuthor
+from recipes.models import Recipe, IngredientRecipe
+from recipes.permissions import IsSafeMethodOrAuthor
 from shopping_list.constants import (
     PDF_FILENAME,
     PDF_MIN_PAGE_SIZE,
@@ -21,18 +18,6 @@ from shopping_list.constants import (
     PDF_START_Y,
     PDF_STRING_SIZE
 )
-from shopping_list.serializers import ShoppingListSerializer
-
-
-class ShoppingListViewSet(BaseUserRecipeViewSet):
-    """Создание, получение списка и удаление рецепта в списке покупок."""
-
-    serializer_class = ShoppingListSerializer
-
-    def get_queryset(self):
-        """Переопределение получаемого списка покупок."""
-        user = self.request.user
-        return user.shopping_list.all()
 
 
 class DownloadShoppingListView(views.APIView):
@@ -40,7 +25,7 @@ class DownloadShoppingListView(views.APIView):
 
     permission_classes = (
         permissions.IsAuthenticated,
-        IsAdminOrAuthor
+        IsSafeMethodOrAuthor
     )
 
     def create_pdf(self, response):
@@ -68,36 +53,40 @@ class DownloadShoppingListView(views.APIView):
 
     def get(self, request, format=None):
         """Получение списка покупок."""
-        response = HttpResponse(content_type='application/pdf')
+        buffer = io.BytesIO()
+        self.create_pdf(buffer)
+        buffer.seek(0)
+        response = FileResponse(
+            buffer,
+            content_type='application/pdf'
+        )
         response['Content-Disposition'] = (
             f'attachment; filename="{PDF_FILENAME}"'
         )
-        self.create_pdf(response)
         return response
 
     def get_queryset(self):
         """Переопределение получаемого списка покупок."""
         user = self.request.user
-        return user.shopping_list.all()
+        return user.shopping_lists.all()
 
     def get_ingredients(self):
         """Получение ингредиентов."""
-        ingredients_cart = dict()
-        for cart in self.get_queryset():
-            ingredients = get_list_or_404(
-                IngredientRecipe,
-                recipe_id=cart.recipe_id
-            )
-            for ingredient in ingredients:
-                item = get_object_or_404(
-                    Ingredient,
-                    id=ingredient.ingredient_id
-                )
-                if item.name in ingredients_cart:
-                    ingredients_cart[item.name][0] += ingredient.amount
-                    continue
-                ingredients_cart[item.name] = [
-                    ingredient.amount,
-                    item.measurement_unit
-                ]
+        recipes = Recipe.objects.filter(
+            shopping_lists__in=self.get_queryset()
+        )
+        queryset = IngredientRecipe.objects.filter(
+            recipe__in=recipes
+        ).values(
+            'ingredient_id',
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            total_amount=Sum('amount')
+        ).order_by('ingredient__name')
+        ingredients_cart = {
+            item['ingredient__name']:
+            [item['total_amount'], item['ingredient__measurement_unit']]
+            for item in queryset
+        }
         return ingredients_cart

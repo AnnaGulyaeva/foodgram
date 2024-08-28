@@ -1,9 +1,27 @@
 from django.contrib import admin
 
 from recipes.filters import TagFilter
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import (
+    Ingredient,
+    IngredientRecipe,
+    Recipe,
+    Tag,
+    TagRecipe
+)
 
 admin.site.empty_value_display = 'Не задано'
+
+
+class IngredientInline(admin.StackedInline):
+    """Интерфейс админ-зоны для отображения постов в столбик."""
+
+    model = IngredientRecipe
+
+
+class TagInline(admin.StackedInline):
+    """Интерфейс админ-зоны для отображения постов в столбик."""
+
+    model = TagRecipe
 
 
 @admin.register(Ingredient)
@@ -21,6 +39,10 @@ class IngredientAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     """Интерфейс админ-зоны для модели рецепта."""
 
+    inlines = (
+        IngredientInline,
+        TagInline
+    )
     list_display = (
         'author_tag',
         'get_favorites_count',
@@ -29,6 +51,10 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = (
         'author_tag',
         'name'
+    )
+    readonly_fields = (
+        'author_tag',
+        'get_favorites_count'
     )
     list_filter = (TagFilter,)
     fieldsets = (

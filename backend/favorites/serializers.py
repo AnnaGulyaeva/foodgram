@@ -19,35 +19,20 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
         queryset=Recipe.objects.all(),
         required=True
     )
-    recipe_info = serializers.SerializerMethodField()
 
     class Meta:
         """Дополнительные настроки сериализатора."""
 
         fields = (
             'user',
-            'recipe',
-            'recipe_info'
+            'recipe'
         )
-
-    def get_recipe_info(self, obj):
-        """"Получение информации о рецепте."""
-        return RecipeWithoutIngredientsTagsSerializer(
-            obj.recipe).data
 
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
-        representation = super().to_representation(instance)
-        representation.pop('user')
-        representation.pop('recipe')
-        representation['id'] = representation['recipe_info']['id']
-        representation['name'] = representation['recipe_info']['name']
-        representation['image'] = representation['recipe_info']['image']
-        representation['cooking_time'] = (
-            representation['recipe_info']['cooking_time']
-        )
-        representation.pop('recipe_info')
-        return representation
+        return RecipeWithoutIngredientsTagsSerializer(
+            instance.recipe
+        ).data
 
 
 class FavoriteSerializer(BaseUserRecipeSerializer):

@@ -6,16 +6,22 @@ from accounts.models import User
 from recipes.constants import (
     COOKING_TIME_MIN_VALUE,
     INGREDIENT_AMOUNT_MIN_VALUE,
-    INGREDIENT_MAX_LENGTH,
     MESUREMENT_UNIT_MAX_LENGTH,
     NAME_MAX_LENGTH,
-    SLUG_MAX_LENGTH,
-    TAG_MAX_LENGTH
+    RECIPE_MAX_LENGTH,
+    SLUG_MAX_LENGTH
 )
 
 
-class BaseModel(models.Model):
+class NameIngredientTagModel(models.Model):
     """Базовый класс моделей."""
+
+    name = models.CharField(
+        'Название',
+        max_length=NAME_MAX_LENGTH,
+        unique=True,
+        db_index=True
+    )
 
     class Meta:
         """Дополнительные настройки модели."""
@@ -27,15 +33,9 @@ class BaseModel(models.Model):
         return self.name
 
 
-class Ingredient(BaseModel):
+class Ingredient(NameIngredientTagModel):
     """Модель ингредиента."""
 
-    name = models.CharField(
-        'Название',
-        max_length=INGREDIENT_MAX_LENGTH,
-        unique=True,
-        db_index=True
-    )
     measurement_unit = models.CharField(
         'Единица измерения',
         max_length=MESUREMENT_UNIT_MAX_LENGTH
@@ -55,15 +55,9 @@ class Ingredient(BaseModel):
         ordering = ('name',)
 
 
-class Tag(BaseModel):
+class Tag(NameIngredientTagModel):
     """Модель тега."""
 
-    name = models.CharField(
-        'Название',
-        max_length=TAG_MAX_LENGTH,
-        unique=True,
-        db_index=True
-    )
     slug = models.SlugField(
         'Слаг',
         max_length=SLUG_MAX_LENGTH
@@ -88,13 +82,13 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         'Название',
-        max_length=NAME_MAX_LENGTH
+        max_length=RECIPE_MAX_LENGTH
     )
     image = models.ImageField(
         'Картинка',
         upload_to='images'
     )
-    description = models.TextField(
+    text = models.TextField(
         verbose_name='Текстовое описание'
     )
     ingredients = models.ManyToManyField(

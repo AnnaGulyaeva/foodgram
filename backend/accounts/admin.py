@@ -10,13 +10,6 @@ admin.site.empty_value_display = 'Не задано'
 class UserAdmin(BaseUserAdmin):
     """Интерфейс админ-зоны для модели пользователя."""
 
-    list_display = (
-        'first_name',
-        'last_name',
-        'email',
-        'username',
-        'password'
-    )
     search_fields = (
         'email',
         'username'
@@ -25,11 +18,4 @@ class UserAdmin(BaseUserAdmin):
         'email',
         'username'
     )
-    fieldsets = (
-        (None, {
-            'fields': ('email', 'username', 'password')
-        }),
-        ('Данные пользователя', {
-            'fields': ('first_name', 'last_name')
-        })
-    )
+    list_display_links = ('username',)
