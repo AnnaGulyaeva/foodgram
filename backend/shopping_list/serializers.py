@@ -7,11 +7,10 @@ from shopping_list.models import ShoppingList
 class ShoppingListSerializer(BaseUserRecipeSerializer):
     """Сериализатор для списка покупок."""
 
-    class Meta:
+    class Meta(BaseUserRecipeSerializer.Meta):
         """Дополнительные настроки сериализатора."""
 
         model = ShoppingList
-        fields = '__all__'
 
     def validate(self, data):
         """Проверка корректности данных."""

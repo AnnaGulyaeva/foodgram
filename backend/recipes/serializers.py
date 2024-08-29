@@ -135,13 +135,21 @@ class RecipeSerializer(BaseRecipeSerializer):
         tags = attrs['tags']
         if not tags:
             raise serializers.ValidationError('Отсутствуют теги!')
-        safe_tags = []
-        for tag in tags:
-            current_tag = get_object_or_404(Tag, name=tag)
-            if current_tag in safe_tags:
-                raise serializers.ValidationError('Теги повторяются!')
-            safe_tags.append(current_tag)
+        if len(set(tags)) != len(tags):
+            raise serializers.ValidationError('Теги повторяются!')
         return attrs
+
+    def add_ingredients(self, ingredients, recipe):
+        """Добавление и обновление ингредиентов рецепта в БД."""
+        ingredient_recipes = [
+            IngredientRecipe(
+                ingredient=ingredient['id'],
+                recipe=recipe,
+                amount=int(ingredient['amount'])
+            )
+            for ingredient in ingredients
+        ]
+        IngredientRecipe.objects.bulk_create(ingredient_recipes)
 
     def create(self, validated_data):
         """Добавление рецепта и связей с ним тегов и рецептов в БД."""
@@ -149,40 +157,17 @@ class RecipeSerializer(BaseRecipeSerializer):
         tags = validated_data.pop('tags')
         validated_data['author'] = self.context['request'].user
         recipe = Recipe.objects.create(**validated_data)
-        ingredient_recipes = []
-        for ingredient in ingredients:
-            ingredient_recipes.append(
-                IngredientRecipe(
-                    ingredient=ingredient['id'],
-                    recipe=recipe,
-                    amount=int(ingredient['amount'])
-                )
-            )
-        IngredientRecipe.objects.bulk_create(ingredient_recipes)
+        self.add_ingredients(ingredients, recipe)
         recipe.tags.set(tags)
         return recipe
 
     def update(self, instance, validated_data):
         """Изменение рецепта и связей с ним тегов и рецептов в БД."""
-        new_tags = validated_data.get('tags')
         instance.tags.clear()
-        for new_tag in new_tags:
-            instance.tags.add(new_tag)
-        new_ingredients = validated_data.get('ingredients')
+        instance.tags.set(validated_data.pop('tags'))
         instance.ingredients.clear()
-        for new_ingredient in new_ingredients:
-            ingredient = new_ingredient.get('id')
-            amount = new_ingredient.get('amount')
-            instance.ingredients.add(
-                ingredient,
-                through_defaults={'amount': amount}
-            )
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
-        )
+        self.add_ingredients(validated_data.pop('ingredients'), instance)
+        instance = super().update(instance, validated_data)
         instance.save()
         return instance
 
@@ -235,8 +220,7 @@ class RecipeReadSerializer(BaseRecipeSerializer):
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
         representation = super().to_representation(instance)
-        representation['image'] = representation['image_url']
-        representation.pop('image_url')
+        representation['image'] = representation.pop('image_url')
         return representation
 
 
@@ -259,8 +243,7 @@ class RecipeShortUrlSerializer(serializers.HyperlinkedModelSerializer):
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
         representation = super().to_representation(instance)
-        representation['short-link'] = representation['short_link']
-        representation.pop('short_link')
+        representation['short-link'] = representation.pop('short_link')
         return representation
 
 
@@ -282,9 +265,6 @@ class RecipeWithoutIngredientsTagsSerializer(BaseRecipeSerializer):
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
         representation = super().to_representation(instance)
-        cooking_time = representation['cooking_time']
-        representation.pop('cooking_time')
         representation['image'] = representation['image_url']
         representation.pop('image_url')
-        representation['cooking_time'] = cooking_time
         return representation

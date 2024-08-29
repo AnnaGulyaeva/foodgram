@@ -27,6 +27,7 @@ class NameIngredientTagModel(models.Model):
         """Дополнительные настройки модели."""
 
         abstract = True
+        ordering = ('name',)
 
     def __str__(self):
         """Возвращает название модели."""
@@ -41,7 +42,7 @@ class Ingredient(NameIngredientTagModel):
         max_length=MESUREMENT_UNIT_MAX_LENGTH
     )
 
-    class Meta:
+    class Meta(NameIngredientTagModel.Meta):
         """Дополнительные настройки модели."""
 
         verbose_name = 'ингредиент'
@@ -52,7 +53,6 @@ class Ingredient(NameIngredientTagModel):
                 name='unique_ingredient'
             )
         ]
-        ordering = ('name',)
 
 
 class Tag(NameIngredientTagModel):
@@ -63,12 +63,11 @@ class Tag(NameIngredientTagModel):
         max_length=SLUG_MAX_LENGTH
     )
 
-    class Meta:
+    class Meta(NameIngredientTagModel.Meta):
         """Дополнительные настройки модели."""
 
         verbose_name = 'тег'
         verbose_name_plural = 'Теги'
-        ordering = ('name',)
 
 
 class Recipe(models.Model):

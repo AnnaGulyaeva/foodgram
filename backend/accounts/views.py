@@ -59,35 +59,28 @@ class UsersViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        elif request.method == 'POST':
-            data = request.data
-            data['user'] = user
-            data['following'] = following
-            context = self.get_serializer_context()
-            recipes_limit = request.query_params.get('recipes_limit', None)
-            if recipes_limit:
-                context['recipes_limit'] = recipes_limit
-            serializer = FollowSerializer(
-                data=data,
-                context=context
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = request.data
+        data['user'] = user
+        data['following'] = following
+        serializer = FollowSerializer(
+            data=data,
+            context=self.get_serializer_context()
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False)
     def subscriptions(self, request):
         """Получение списка подписок."""
-        queryset = request.user.follower.all()
-        context = self.get_serializer_context()
-        recipes_limit = request.query_params.get('recipes_limit', None)
-        page = self.paginate_queryset(queryset)
-        if recipes_limit:
-            context['recipes_limit'] = recipes_limit
+        queryset = request.user.follower.values('following')
+        authors = User.objects.filter(
+            id__in=queryset
+        )
         serializer = SubscribtionsSerializer(
-            page,
+            self.paginate_queryset(authors),
             many=True,
-            context=context
+            context=self.get_serializer_context()
         )
         return self.get_paginated_response(serializer.data)
 

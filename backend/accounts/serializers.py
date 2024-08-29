@@ -37,8 +37,7 @@ class AvatarCreateDeleteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
         representation = super().to_representation(instance)
-        representation['avatar'] = representation['avatar_url']
-        representation.pop('avatar_url')
+        representation['avatar'] = representation.pop('avatar_url')
         return representation
 
 
@@ -92,7 +91,7 @@ class UsersGetListSerializer(
         """Дополнительные настройки сериализатора."""
 
         model = User
-        fields = (
+        fields = [
             'id',
             'username',
             'first_name',
@@ -101,7 +100,7 @@ class UsersGetListSerializer(
             'is_subscribed',
             'avatar',
             'avatar_url'
-        )
+        ]
 
     def get_is_subscribed(self, obj):
         """Проверка подписки на данного пользователя."""

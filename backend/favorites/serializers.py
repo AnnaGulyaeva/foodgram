@@ -38,11 +38,10 @@ class BaseUserRecipeSerializer(serializers.ModelSerializer):
 class FavoriteSerializer(BaseUserRecipeSerializer):
     """Сериализатор для избранного."""
 
-    class Meta:
+    class Meta(BaseUserRecipeSerializer.Meta):
         """Дополнительные настроки сериализатора."""
 
         model = Favorite
-        fields = '__all__'
 
     def validate(self, data):
         """Проверка корректности данных."""

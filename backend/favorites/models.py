@@ -40,3 +40,4 @@ class Favorite(BaseUserRecipeModel):
         default_related_name = 'favorites'
         verbose_name = 'избранное'
         verbose_name_plural = 'Избранные'
+        ordering = ('recipe__name',)
