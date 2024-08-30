@@ -50,7 +50,9 @@ class RecipeAdmin(admin.ModelAdmin):
     )
     search_fields = (
         'author_tag',
-        'name'
+        'name',
+        'text',
+        'cooking_time'
     )
     readonly_fields = (
         'author_tag',
