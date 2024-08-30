@@ -33,5 +33,5 @@ class UserAdmin(BaseUserAdmin):
 
     def following_count(self, obj):
         """Возвращает количество подписчиков."""
-        return obj.following.count() 
+        return obj.following.count()
     following_count.short_description = 'Количество подписчиков'

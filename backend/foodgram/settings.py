@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'recipes.apps.RecipesConfig',
     'shopping_list.apps.ShoppingListConfig',
     'subscriptions.apps.SubscriptionsConfig',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -125,6 +126,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 6,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 DJOSER = {

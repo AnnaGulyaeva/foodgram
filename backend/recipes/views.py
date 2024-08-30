@@ -123,7 +123,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         page = canvas.Canvas(response, pagesize=letter)
         pdfmetrics.registerFont(TTFont(
             'DejaVuSans',
-            'shopping_list/static/fonts/djsans/DejaVuSans.ttf')
+            'recipes/static/fonts/djsans/DejaVuSans.ttf')
         )
         page.setFont('DejaVuSans', 12)
         page.drawString(PDF_START_X, PDF_START_Y, PDF_PAGE_NAME)
