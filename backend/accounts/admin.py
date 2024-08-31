@@ -26,12 +26,12 @@ class UserAdmin(BaseUserAdmin):
     )
     list_display_links = ('username',)
 
+    @admin.display(description='Количество рецептов')
     def recipes_count(self, obj):
         """Возвращает количество рецептов."""
         return obj.recipes.count()
-    recipes_count.short_description = 'Количество рецептов'
 
+    @admin.display(description='Количество подписчиков')
     def following_count(self, obj):
         """Возвращает количество подписчиков."""
         return obj.following.count()
-    following_count.short_description = 'Количество подписчиков'

@@ -22,6 +22,7 @@ class BaseUserRecipeModel(models.Model):
         """Дополнительные настройки модели."""
 
         abstract = True
+        ordering = ('recipe__name',)
 
     def __str__(self):
         """Возвращает username пользователя и name рецепта."""
@@ -34,10 +35,9 @@ class BaseUserRecipeModel(models.Model):
 class Favorite(BaseUserRecipeModel):
     """Модель избранного."""
 
-    class Meta:
+    class Meta(BaseUserRecipeModel.Meta):
         """Дополнительные настроки модели."""
 
         default_related_name = 'favorites'
         verbose_name = 'избранное'
         verbose_name_plural = 'Избранные'
-        ordering = ('recipe__name',)

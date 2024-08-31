@@ -4,7 +4,7 @@ from favorites.models import BaseUserRecipeModel
 class ShoppingList(BaseUserRecipeModel):
     """Модель списка покупок."""
 
-    class Meta:
+    class Meta(BaseUserRecipeModel.Meta):
         """Дополнительные настроки модели."""
 
         default_related_name = 'shopping_lists'

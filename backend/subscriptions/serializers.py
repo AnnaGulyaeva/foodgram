@@ -65,10 +65,9 @@ class SubscribtionsSerializer(UsersGetListSerializer):
         context = self.context
         if 'request' in context:
             query_params = self.context.get('request').query_params
-            if 'recipes_limit' in query_params:
-                recipes_limit = query_params['recipes_limit']
-                if recipes_limit.isdigit():
-                    recipes = recipes[:int(recipes_limit)]
+            recipes_limit = query_params.get('recipes_limit')
+            if recipes_limit and recipes_limit.isdigit():
+                recipes = recipes[:int(recipes_limit)]
         return RecipeWithoutIngredientsTagsSerializer(
             recipes,
             many=True,

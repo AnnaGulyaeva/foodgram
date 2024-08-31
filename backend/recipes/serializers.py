@@ -112,9 +112,7 @@ class RecipeSerializer(BaseRecipeSerializer):
 
     def validate(self, attrs):
         """Проверка корректности данных для ингридиентов."""
-        if 'ingredients' not in attrs:
-            raise serializers.ValidationError('Отсутствуют ингредиенты!')
-        ingredients = attrs['ingredients']
+        ingredients = attrs.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError('Отсутствуют ингредиенты!')
         safe_ingredients = []
@@ -130,9 +128,7 @@ class RecipeSerializer(BaseRecipeSerializer):
                 raise serializers.ValidationError(
                     f'Количество ингредиента {ingredient} указано неверно!'
                 )
-        if 'tags' not in attrs:
-            raise serializers.ValidationError('Отсутствуют теги!')
-        tags = attrs['tags']
+        tags = attrs.get('tags')
         if not tags:
             raise serializers.ValidationError('Отсутствуют теги!')
         if len(set(tags)) != len(tags):
@@ -167,9 +163,7 @@ class RecipeSerializer(BaseRecipeSerializer):
         instance.tags.set(validated_data.pop('tags'))
         instance.ingredients.clear()
         self.add_ingredients(validated_data.pop('ingredients'), instance)
-        instance = super().update(instance, validated_data)
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
@@ -265,6 +259,5 @@ class RecipeWithoutIngredientsTagsSerializer(BaseRecipeSerializer):
     def to_representation(self, instance):
         """Изменение возвращаемых данных."""
         representation = super().to_representation(instance)
-        representation['image'] = representation['image_url']
-        representation.pop('image_url')
+        representation['image'] = representation.pop('image_url')
         return representation
