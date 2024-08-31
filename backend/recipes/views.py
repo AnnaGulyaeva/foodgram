@@ -9,7 +9,6 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import (
-    pagination,
     permissions,
     status,
     viewsets
@@ -48,7 +47,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    pagination_class = pagination.LimitOffsetPagination
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly,
         IsSafeMethodOrAuthor,
