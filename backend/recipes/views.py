@@ -48,7 +48,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    pagination_class = pagination.LimitOffsetPagination
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly,
         IsSafeMethodOrAuthor,
